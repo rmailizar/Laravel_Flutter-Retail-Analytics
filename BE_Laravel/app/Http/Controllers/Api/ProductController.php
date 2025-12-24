@@ -7,6 +7,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class ProductController extends Controller
 {
@@ -50,12 +51,15 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        // SKU & barcode TIDAK boleh diubah
+        // Allow updating SKU, barcode and stock while keeping validation for uniqueness
         $validated = $request->validate([
             'name' => 'required|string',
+            'sku' => "required|string|unique:products,sku,{$id}",
+            'barcode' => "required|string|unique:products,barcode,{$id}",
             'category_id' => 'nullable|exists:categories,id',
             'sell_price' => 'required|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',
+            'stock' => 'nullable|integer|min:0',
         ]);
 
         $product->update($validated);
@@ -133,9 +137,23 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        Product::findOrFail($id)->delete();
+        $product = Product::findOrFail($id);
 
-        return response()->json(['success' => true]);
+        try {
+            $product->delete();
+            return response()->json(['success' => true]);
+        } catch (QueryException $e) {
+            // SQLSTATE[23000] integrity constraint violation (foreign key)
+            if ($e->getCode() == '23000' || str_contains($e->getMessage(), 'Integrity constraint')) {
+                return response()->json([
+                    'message' => 'Produk tidak dapat dihapus karena sudah digunakan pada transaksi atau data terkait.',
+                    'error' => $e->getMessage()
+                ], 409);
+            }
+
+            // rethrow other DB exceptions
+            throw $e;
+        }
     }
     
 }

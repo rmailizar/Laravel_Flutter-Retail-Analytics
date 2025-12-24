@@ -19,7 +19,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
+    // Allow all origins for local development. Change to specific origins in production.
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
@@ -29,6 +30,8 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,
+    // Credentials and cookies are disabled for wildcard origin. Set to true and
+    // specify exact origins in production when cookies/auth are required.
+    'supports_credentials' => false,
 
 ];

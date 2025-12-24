@@ -1,0 +1,23 @@
+{
+  "name": "uas-mobile",
+  "version": "1.0.0",
+  "description": "UAS Mobile Project - E-commerce Application with Laravel Backend and Flutter Frontend",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo \"Start development servers\"",
+    "backend": "cd BE_Laravel && php artisan serve",
+    "frontend": "cd fe_flutter && flutter run",
+    "test": "echo \"Run tests\"",
+    "build": "echo \"Build project\""
+  },
+  "keywords": [
+    "laravel",
+    "flutter",
+    "e-commerce",
+    "mobile",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {}
+}
