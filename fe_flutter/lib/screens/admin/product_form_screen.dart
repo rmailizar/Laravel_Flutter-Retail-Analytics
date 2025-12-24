@@ -48,6 +48,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _stockController = TextEditingController(
       text: widget.product?.stock.toString() ?? '0',
     );
+    
+    // Set selected category if editing
+    if (_isEdit && widget.product?.categoryId != null) {
+      _selectedCategoryId = widget.product!.categoryId;
+    }
+    
     _loadCategories();
   }
 
@@ -58,6 +64,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       setState(() {
         _categories = categories;
         _isLoadingCategories = false;
+        
+        // Re-validate selected category after categories loaded
+        if (_selectedCategoryId != null) {
+          final categoryExists = categories.any((c) => c.id == _selectedCategoryId);
+          if (!categoryExists) {
+            _selectedCategoryId = null;
+          }
+        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -94,9 +108,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       "barcode": _barcodeController.text.trim(),
       "cost_price": _costController.text,
       "sell_price": _sellController.text,
-      "stock": _stockController.text,
       "active": 1,
       if (_selectedCategoryId != null) "category_id": _selectedCategoryId,
+      if (!_isEdit) "stock": _stockController.text, // Only on create
     };
 
     try {
@@ -314,21 +328,41 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          // Stock Section
-          _buildSectionCard(
-            title: 'Stok',
-            icon: Icons.inventory_outlined,
-            children: [
-              _buildTextField(
-                controller: _stockController,
-                label: 'Jumlah Stok',
-                hint: '0',
-                icon: Icons.numbers_rounded,
-                keyboardType: TextInputType.number,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
+          
+          // Stock Section - Only visible when creating new product
+          if (!_isEdit) ...[
+            _buildSectionCard(
+              title: 'Stok Awal',
+              icon: Icons.inventory_2_outlined,
+              children: [
+                _buildTextField(
+                  controller: _stockController,
+                  label: 'Jumlah Stok',
+                  hint: '0',
+                  icon: Icons.inventory_outlined,
+                  keyboardType: TextInputType.number,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Wajib diisi';
+                    final stock = int.tryParse(v);
+                    if (stock == null || stock < 0) return 'Harus angka >= 0';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Catatan: Stok produk yang sudah ada dikelola melalui fitur "Atur Stok"',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+          
+          const SizedBox(height: 8),
           // Submit Button
           _buildSubmitButton(),
           const SizedBox(height: 16),
@@ -467,17 +501,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       ),
       hint: _isLoadingCategories
           ? const Text('Memuat kategori...')
-          : const Text('Pilih kategori'),
-      items: [
-        const DropdownMenuItem<int?>(
-          value: null,
-          child: Text('Tanpa Kategori'),
-        ),
-        ..._categories.map((cat) => DropdownMenuItem<int?>(
-              value: cat.id,
-              child: Text(cat.name),
-            )),
-      ],
+          : const Text('Pilih kategori (opsional)'),
+      items: _categories.map((cat) {
+        return DropdownMenuItem<int?>(
+          value: cat.id,
+          child: Text(cat.name),
+        );
+      }).toList(),
       onChanged: (value) {
         setState(() => _selectedCategoryId = value);
       },

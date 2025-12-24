@@ -236,6 +236,12 @@ class _PosScreenState extends State<PosScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("POS Kasir"),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => Navigator.maybePop(context),
+              )
+            : null,
         actions: [
           IconButton(
             tooltip: 'Scan Barcode',

@@ -97,4 +97,27 @@ class ProductService {
       throw Exception('Gagal update produk (${res.statusCode}): $body');
     }
   }
+
+  /// Import products via CSV/TXT file (multipart)
+  static Future<int> importProducts({
+    required List<int> fileBytes,
+    required String filename,
+    String? token,
+  }) async {
+    final uri = Uri.parse('${Api.baseUrl}/products/import');
+    final request = http.MultipartRequest('POST', uri);
+    request.headers.addAll({
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    });
+    request.files.add(http.MultipartFile.fromBytes('file', fileBytes, filename: filename));
+
+    final streamed = await request.send();
+    final res = await http.Response.fromStream(streamed);
+    if (res.statusCode != 200) {
+      throw Exception('Gagal import produk (${res.statusCode}): ${res.body}');
+    }
+    final data = json.decode(res.body) as Map<String, dynamic>;
+    return (data['created'] ?? 0) as int;
+  }
 }

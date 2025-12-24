@@ -1,3 +1,15 @@
+    public function history($productId)
+    {
+        $movements = StockMovement::with(['user'])
+            ->where('product_id', $productId)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $movements
+        ]);
+    }
 <?php
 
 namespace App\Http\Controllers\Api;

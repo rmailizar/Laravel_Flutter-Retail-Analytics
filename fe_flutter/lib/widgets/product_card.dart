@@ -4,12 +4,14 @@ import '../models/product.dart';
 class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback onAddToCart;
+  final VoidCallback? onViewDetail;
   final bool isLoading;
 
   const ProductCard({
     super.key,
     required this.product,
     required this.onAddToCart,
+    this.onViewDetail,
     this.isLoading = false,
   });
 
@@ -73,7 +75,12 @@ class _ProductCardState extends State<ProductCard>
         onTapDown: _handleTapDown,
         onTapUp: _handleTapUp,
         onTapCancel: _handleTapCancel,
-        onTap: isOutOfStock ? null : widget.onAddToCart,
+        onTap: () {
+          if (widget.onViewDetail != null) {
+            widget.onViewDetail!();
+          }
+        },
+        onDoubleTap: isOutOfStock ? null : widget.onAddToCart,
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),

@@ -11,7 +11,15 @@ class ReceiptScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Struk")),
+      appBar: AppBar(
+        title: const Text("Struk"),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => Navigator.maybePop(context),
+              )
+            : null,
+      ),
       body: FutureBuilder<Receipt>(
         future: ReceiptService.getReceipt(transactionId),
         builder: (context, snapshot) {

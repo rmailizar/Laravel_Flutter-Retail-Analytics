@@ -73,6 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Stock
         Route::post('/products/{id}/adjust-stock', [StockController::class, 'adjust']);
+        Route::get('/products/{id}/stock-history', [StockController::class, 'history']);
 
         // Dashboard
         Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
@@ -97,6 +98,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Checkout (cash only)
         Route::post('/carts/{code}/checkout', [TransactionController::class, 'checkout']);
+
+        // Transactions
+        Route::get('/transactions', [TransactionController::class, 'index']);
 
         // Receipt PDF
         Route::get('/transactions/{invoice}/receipt', [ReceiptController::class, 'download']);

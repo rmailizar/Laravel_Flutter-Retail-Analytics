@@ -14,6 +14,29 @@ use Illuminate\Support\Str;
 class TransactionController extends Controller
 {
     /**
+     * Get list of transactions
+     */
+    public function index(Request $request)
+    {
+        $query = Transaction::with(['items.product'])
+            ->orderBy('created_at', 'desc');
+
+        // Filter by date range if provided
+        if ($request->has('start_date')) {
+            $query->whereDate('transaction_date', '>=', $request->start_date);
+        }
+        if ($request->has('end_date')) {
+            $query->whereDate('transaction_date', '<=', $request->end_date);
+        }
+
+        // Pagination
+        $perPage = $request->get('per_page', 50);
+        $transactions = $query->paginate($perPage);
+
+        return response()->json($transactions);
+    }
+
+    /**
      * Checkout cart (cash only)
      */
     public function checkout(Request $request, $code)

@@ -7,7 +7,15 @@ class KasirDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Kasir")),
+      appBar: AppBar(
+        title: const Text("Kasir"),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => Navigator.maybePop(context),
+              )
+            : null,
+      ),
       body: ListView(
         children: [
           ListTile(

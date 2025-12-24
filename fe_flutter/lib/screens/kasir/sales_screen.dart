@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'dart:html' as html;
 
 import '../../providers/auth_provider.dart';
+import '../../widgets/app_header.dart';
 import '../../models/product.dart';
 import '../../models/category.dart';
 import '../../models/cart_item.dart';
@@ -10,9 +11,9 @@ import '../../services/product_service.dart';
 import '../../services/category_service.dart';
 import '../../services/cart_service.dart';
 import '../../widgets/product_card.dart';
+import '../product_detail_screen.dart';
 import '../../widgets/cart_item_tile.dart';
 import '../../widgets/category_filter.dart';
-import '../../widgets/search_bar_widget.dart';
 import '../../widgets/cart_summary.dart';
 import '../login_screen.dart';
 import 'scanner_screen.dart';
@@ -125,11 +126,6 @@ class _SalesScreenState extends State<SalesScreen> {
     } catch (e) {
       debugPrint('Failed to refresh cart: $e');
     }
-  }
-
-  void _onSearch(String query) {
-    setState(() => _searchQuery = query);
-    _loadProducts();
   }
 
   void _onCategorySelected(int? categoryId) {
@@ -399,10 +395,121 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   Future<void> _scanBarcode() async {
-    final code = await Navigator.push<String?>(
-      context,
-      MaterialPageRoute(builder: (_) => const ScannerScreen()),
+    // Show options: Scan with camera or manual input
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Cari Produk',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C3AED).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.qr_code_scanner_rounded,
+                    color: Color(0xFF7C3AED),
+                  ),
+                ),
+                title: const Text('Scan Barcode'),
+                subtitle: const Text('Gunakan kamera'),
+                onTap: () => Navigator.pop(ctx, 'scan'),
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2DD4BF).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.keyboard_rounded,
+                    color: Color(0xFF2DD4BF),
+                  ),
+                ),
+                title: const Text('Input Manual'),
+                subtitle: const Text('Ketik barcode/SKU'),
+                onTap: () => Navigator.pop(ctx, 'manual'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+
+    if (choice == null) return;
+
+    String? code;
+    
+    if (choice == 'scan') {
+      // Scan with camera
+      code = await Navigator.push<String?>(
+        context,
+        MaterialPageRoute(builder: (_) => const ScannerScreen()),
+      );
+    } else if (choice == 'manual') {
+      // Manual input
+      final controller = TextEditingController();
+      code = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Input Barcode/SKU'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'Masukkan kode produk',
+              prefixIcon: const Icon(Icons.barcode_reader),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onSubmitted: (value) {
+              if (value.isNotEmpty) {
+                Navigator.pop(ctx, value);
+              }
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.isNotEmpty) {
+                  Navigator.pop(ctx, controller.text);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Cari'),
+            ),
+          ],
+        ),
+      );
+    }
+    
     if (code == null || code.isEmpty) return;
 
     try {
@@ -495,68 +602,17 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   Widget _buildHeader(bool isWide) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Logo/Title
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFF2DD4BF)],
-                  ),
-                ),
-                child: const Icon(
-                  Icons.storefront_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'Sales Store',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1F2937),
-                  ),
-                ),
-              ),
-              // Scanner Button
-              _buildIconButton(
-                icon: Icons.qr_code_scanner_rounded,
-                tooltip: 'Scan Barcode',
-                onTap: _scanBarcode,
-              ),
-              const SizedBox(width: 8),
-              // Logout Button
-              _buildIconButton(
-                icon: Icons.logout_rounded,
-                tooltip: 'Logout',
-                onTap: _logout,
-                isDestructive: true,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SearchBarWidget(onSearch: _onSearch),
-        ],
-      ),
+    return AppHeader(
+      title: 'Sales Store',
+      subtitle: 'Kasir POS',
+      actions: [
+        _buildIconButton(
+          icon: Icons.qr_code_scanner_rounded,
+          tooltip: 'Scan Barcode',
+          onTap: _scanBarcode,
+        ),
+      ],
+      onLogout: _logout,
     );
   }
 
@@ -647,6 +703,12 @@ class _SalesScreenState extends State<SalesScreen> {
             product: product,
             isLoading: _addingProductIds.contains(product.id),
             onAddToCart: () => _addToCart(product),
+            onViewDetail: () {
+              showDialog(
+                context: context,
+                builder: (context) => ProductDetailScreen(product: product),
+              );
+            },
           );
         },
       ),
