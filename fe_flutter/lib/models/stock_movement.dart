@@ -8,6 +8,7 @@ class StockMovement {
   final int? createdBy;
   final String? createdAt;
   final String? userName;
+  final String? productName;
 
   StockMovement({
     required this.id,
@@ -19,6 +20,7 @@ class StockMovement {
     this.createdBy,
     this.createdAt,
     this.userName,
+    this.productName,
   });
 
   factory StockMovement.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,7 @@ class StockMovement {
       createdBy: json['created_by'],
       createdAt: json['created_at'],
       userName: json['user'] != null ? (json['user']['name'] ?? '') : null,
+      productName: json['product'] != null ? (json['product']['name'] ?? '') : null,
     );
   }
 }

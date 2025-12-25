@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../services/stock_service.dart';
 import '../models/stock_movement.dart';
+import '../providers/auth_provider.dart';
+import './admin/stock_history_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -34,7 +37,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       _historyError = null;
     });
     try {
-      final token = null; // TODO: ambil token dari Provider jika perlu
+      final token = context.read<AuthProvider>().token;
       final history = await StockService.getStockHistory(
           productId: widget.product.id, token: token);
       setState(() => _history = history);
@@ -310,52 +313,100 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (_history!.isEmpty) {
       return const Text('Belum ada riwayat perubahan stok.');
     }
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _history!.length,
-      separatorBuilder: (_, __) => const Divider(height: 16),
-      itemBuilder: (context, i) {
-        final h = _history![i];
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              h.type == 'in'
-                  ? Icons.add_circle_outline
-                  : h.type == 'out'
-                      ? Icons.remove_circle_outline
-                      : Icons.edit,
-              color: h.type == 'in'
-                  ? Colors.green
-                  : h.type == 'out'
-                      ? Colors.red
-                      : Colors.orange,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${h.type.toUpperCase()} | ${h.qty} item',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+    
+    // Show max 3 items, with a "View All" button
+    final displayedHistory = _history!.take(3).toList();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: displayedHistory.length,
+          separatorBuilder: (_, __) => const Divider(height: 16),
+          itemBuilder: (context, i) {
+            final h = displayedHistory[i];
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  Navigator.pop(context); // Close dialog dulu
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const StockHistoryScreen()),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        h.type == 'in'
+                            ? Icons.add_circle_outline
+                            : h.type == 'out'
+                                ? Icons.remove_circle_outline
+                                : Icons.edit,
+                        color: h.type == 'in'
+                            ? Colors.green
+                            : h.type == 'out'
+                                ? Colors.red
+                                : Colors.orange,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${h.type.toUpperCase()} | ${h.qty} item',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            if (h.note != null && h.note!.isNotEmpty)
+                              Text('Catatan: ${h.note}', style: const TextStyle(fontSize: 12)),
+                            Text(
+                              h.createdAt ?? '',
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                            if (h.userName != null && h.userName!.isNotEmpty)
+                              Text('Oleh: ${h.userName}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  if (h.note != null && h.note!.isNotEmpty)
-                    Text('Catatan: ${h.note}', style: const TextStyle(fontSize: 12)),
-                  Text(
-                    h.createdAt ?? '',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  if (h.userName != null && h.userName!.isNotEmpty)
-                    Text('Oleh: ${h.userName}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                ],
+                ),
+              ),
+            );
+          },
+        ),
+        if (_history!.length > 3) ...[
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StockHistoryScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Lihat Semua Riwayat Stok',
+                style: TextStyle(color: Colors.white),
               ),
             ),
-          ],
-        );
-      },
+          ),
+        ],
+      ],
     );
   }
 }

@@ -1,15 +1,3 @@
-    public function history($productId)
-    {
-        $movements = StockMovement::with(['user'])
-            ->where('product_id', $productId)
-            ->orderByDesc('created_at')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $movements
-        ]);
-    }
 <?php
 
 namespace App\Http\Controllers\Api;
@@ -60,6 +48,28 @@ class StockController extends Controller
             'success' => true,
             'new_stock' => $product->stock
         ]);
+    }
+
+    public function history($productId)
+    {
+        $movements = StockMovement::with(['user'])
+            ->where('product_id', $productId)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $movements
+        ]);
+    }
+
+    public function allMovements()
+    {
+        $movements = StockMovement::with(['product', 'user'])
+            ->orderByDesc('created_at')
+            ->paginate(50);
+
+        return response()->json($movements);
     }
 }
 

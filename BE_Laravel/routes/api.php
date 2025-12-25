@@ -74,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Stock
         Route::post('/products/{id}/adjust-stock', [StockController::class, 'adjust']);
         Route::get('/products/{id}/stock-history', [StockController::class, 'history']);
+        Route::get('/stock-movements', [StockController::class, 'allMovements']);
 
         // Dashboard
         Route::get('/dashboard/summary', [DashboardController::class, 'summary']);

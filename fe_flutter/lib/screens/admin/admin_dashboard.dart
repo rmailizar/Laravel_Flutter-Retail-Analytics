@@ -8,6 +8,7 @@ import '../login_screen.dart';
 import 'product_screen.dart';
 import 'category_screen.dart';
 import 'transaction_history_screen.dart';
+import 'stock_history_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -317,6 +318,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const CategoryScreen()),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildActionButton(
+                      "Riwayat Stok",
+                      Icons.warehouse_rounded,
+                      const Color(0xFFF59E0B),
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const StockHistoryScreen()),
                       ),
                     ),
                     const SizedBox(height: 12),
