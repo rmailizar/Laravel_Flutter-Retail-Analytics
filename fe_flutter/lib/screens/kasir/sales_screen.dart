@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:html' as html;
 
 import '../../providers/auth_provider.dart';
 import '../../widgets/app_header.dart';
@@ -187,8 +186,7 @@ class _SalesScreenState extends State<SalesScreen> {
     await _updateItemQty(item, 0);
   }
 
-  double get _total =>
-      _cartItems.fold(0.0, (sum, item) => sum + item.subtotal);
+  double get _total => _cartItems.fold(0.0, (sum, item) => sum + item.subtotal);
 
   Future<void> _checkout() async {
     final token = context.read<AuthProvider>().token;
@@ -342,7 +340,8 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, {bool isHighlighted = false}) {
+  Widget _buildSummaryRow(String label, String value,
+      {bool isHighlighted = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -369,19 +368,19 @@ class _SalesScreenState extends State<SalesScreen> {
 
   Future<void> _downloadReceipt(String invoice, String token) async {
     try {
-      final bytes = await CartService.getReceiptBytes(invoice, token);
-      final blob = html.Blob([bytes], 'application/pdf');
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.document.createElement('a') as html.AnchorElement
-        ..href = url
-        ..style.display = 'none'
-        ..download = 'struk-$invoice.pdf';
-      html.document.body?.append(anchor);
-      anchor.click();
-      anchor.remove();
-      html.Url.revokeObjectUrl(url);
+      final filePath = await CartService.downloadReceiptAndroid(
+        invoice: invoice,
+        token: token,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Struk tersimpan di:\n$filePath')),
+      );
     } catch (e) {
-      if (mounted) _showError('Gagal download receipt: $e');
+      if (!mounted) return;
+      _showError('Gagal download struk: $e');
     }
   }
 
@@ -457,7 +456,7 @@ class _SalesScreenState extends State<SalesScreen> {
     if (choice == null) return;
 
     String? code;
-    
+
     if (choice == 'scan') {
       // Scan with camera
       code = await Navigator.push<String?>(
@@ -470,7 +469,8 @@ class _SalesScreenState extends State<SalesScreen> {
       code = await showDialog<String>(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text('Input Barcode/SKU'),
           content: TextField(
             controller: controller,
@@ -509,7 +509,7 @@ class _SalesScreenState extends State<SalesScreen> {
         ),
       );
     }
-    
+
     if (code == null || code.isEmpty) return;
 
     try {
@@ -634,15 +634,11 @@ class _SalesScreenState extends State<SalesScreen> {
             height: 44,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              color: isDestructive
-                  ? Colors.red.shade50
-                  : Colors.grey.shade100,
+              color: isDestructive ? Colors.red.shade50 : Colors.grey.shade100,
             ),
             child: Icon(
               icon,
-              color: isDestructive
-                  ? Colors.red.shade600
-                  : Colors.grey.shade700,
+              color: isDestructive ? Colors.red.shade600 : Colors.grey.shade700,
               size: 22,
             ),
           ),

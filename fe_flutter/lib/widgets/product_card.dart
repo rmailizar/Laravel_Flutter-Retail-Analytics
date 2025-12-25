@@ -62,7 +62,7 @@ class _ProductCardState extends State<ProductCard>
   Widget build(BuildContext context) {
     final product = widget.product;
     final bool isOutOfStock = product.stock <= 0;
-    
+
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
@@ -80,7 +80,6 @@ class _ProductCardState extends State<ProductCard>
             widget.onViewDetail!();
           }
         },
-        onDoubleTap: isOutOfStock ? null : widget.onAddToCart,
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
@@ -106,13 +105,13 @@ class _ProductCardState extends State<ProductCard>
             borderRadius: BorderRadius.circular(16),
             child: Stack(
               children: [
-                // Main Content
+                // ================= MAIN CONTENT =================
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Product Icon/Image Placeholder
+                      // Image / Icon
                       Expanded(
                         flex: 3,
                         child: Container(
@@ -137,10 +136,14 @@ class _ProductCardState extends State<ProductCard>
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 10),
-                      // Product Name
+
+                      // Name
                       Text(
                         product.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -148,10 +151,10 @@ class _ProductCardState extends State<ProductCard>
                               ? Colors.grey.shade600
                               : Colors.grey.shade800,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
+
                       const SizedBox(height: 4),
+
                       // SKU
                       Text(
                         product.sku,
@@ -161,12 +164,13 @@ class _ProductCardState extends State<ProductCard>
                           fontWeight: FontWeight.w500,
                         ),
                       ),
+
                       const Spacer(),
-                      // Price and Stock Row
+
+                      // ================= PRICE + ADD BUTTON =================
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Price
                           Text(
                             'Rp ${_formatPrice(product.sellPrice)}',
                             style: TextStyle(
@@ -177,44 +181,52 @@ class _ProductCardState extends State<ProductCard>
                                   : Colors.deepPurple.shade700,
                             ),
                           ),
-                          // Add Button
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: isOutOfStock
-                                  ? null
-                                  : const LinearGradient(
-                                      colors: [
-                                        Color(0xFF7C3AED),
-                                        Color(0xFF2DD4BF),
-                                      ],
-                                    ),
-                              color: isOutOfStock ? Colors.grey.shade400 : null,
-                            ),
-                            child: widget.isLoading
-                                ? const Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              if (isOutOfStock || widget.isLoading) return;
+                              widget.onAddToCart();
+                            },
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: isOutOfStock
+                                    ? null
+                                    : const LinearGradient(
+                                        colors: [
+                                          Color(0xFF7C3AED),
+                                          Color(0xFF2DD4BF),
+                                        ],
+                                      ),
+                                color:
+                                    isOutOfStock ? Colors.grey.shade400 : null,
+                              ),
+                              child: widget.isLoading
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(8),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Icon(
+                                      isOutOfStock
+                                          ? Icons.block_rounded
+                                          : Icons.add_rounded,
                                       color: Colors.white,
+                                      size: 20,
                                     ),
-                                  )
-                                : Icon(
-                                    isOutOfStock
-                                        ? Icons.block_rounded
-                                        : Icons.add_rounded,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
+                            ),
                           ),
                         ],
                       ),
                     ],
                   ),
                 ),
-                // Stock Badge
+
+                // ================= STOCK BADGE =================
                 Positioned(
                   top: 8,
                   right: 8,

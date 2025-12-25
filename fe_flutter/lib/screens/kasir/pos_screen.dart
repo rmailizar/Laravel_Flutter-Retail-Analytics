@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:html' as html;
 
 import '../../providers/auth_provider.dart';
 import '../login_screen.dart';
@@ -149,36 +148,38 @@ class _PosScreenState extends State<PosScreen> {
               TextButton(
                 onPressed: () async {
                   Navigator.pop(context);
+
                   try {
-                    final bytes = await CartService.getReceiptBytes(invoice, token);
-                    final blob = html.Blob([bytes], 'application/pdf');
-                    final url = html.Url.createObjectUrlFromBlob(blob);
-                    final anchor = html.document.createElement('a') as html.AnchorElement
-                      ..href = url
-                      ..style.display = 'none'
-                      ..download = 'struk-$invoice.pdf';
-                    html.document.body?.append(anchor);
-                    anchor.click();
-                    anchor.remove();
-                    html.Url.revokeObjectUrl(url);
+                    // 🔽 DOWNLOAD + PREVIEW PDF (ANDROID)
+                    await CartService.downloadReceiptAndroid(
+                      invoice: invoice,
+                      token: token,
+                    );
                   } catch (e) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Gagal download receipt: $e')),
+                        SnackBar(content: Text('Gagal cetak struk: $e')),
                       );
                     }
+                    return; // hentikan flow kalau gagal cetak
                   }
+
+                  // =========================
+                  // RESET CART & UI (AMAN)
+                  // =========================
+                  if (!mounted) return;
 
                   setState(() {
                     cart.clear();
                     bayarCtrl.clear();
                   });
-                  // refresh product list to reflect updated stocks
+
+                  // refresh product list (stok terbaru)
                   setState(() {
                     productsFuture = ProductService.getProducts();
                   });
 
-                  // create a fresh cart for subsequent purchases
+                  // buat cart baru untuk transaksi berikutnya
                   try {
                     final token = context.read<AuthProvider>().token;
                     if (token != null) {
@@ -192,7 +193,7 @@ class _PosScreenState extends State<PosScreen> {
                 },
                 child: const Text('Cetak Struk'),
               ),
-
+              
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
@@ -261,7 +262,7 @@ class _PosScreenState extends State<PosScreen> {
                 if (match.isEmpty) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Produk tidak ditemukan')), 
+                      const SnackBar(content: Text('Produk tidak ditemukan')),
                     );
                   }
                 } else {
@@ -316,7 +317,8 @@ class _PosScreenState extends State<PosScreen> {
                     return Card(
                       child: ListTile(
                         title: Text(p.name),
-                        subtitle: Text("Rp ${p.sellPrice.toInt()} | Stok ${p.stock}"),
+                        subtitle:
+                            Text("Rp ${p.sellPrice.toInt()} | Stok ${p.stock}"),
                         trailing: IconButton(
                           icon: const Icon(Icons.add_shopping_cart),
                           onPressed: () => addToCart(p),
@@ -351,15 +353,16 @@ class _PosScreenState extends State<PosScreen> {
                         final c = cart[i];
                         return ListTile(
                           title: Text(c.product.name),
-                          subtitle: Text(
-                              "${c.qty} x ${c.product.sellPrice}"),
+                          subtitle: Text("${c.qty} x ${c.product.sellPrice}"),
                           trailing: IconButton(
                             icon: const Icon(Icons.remove),
                             onPressed: () async {
                               final token = context.read<AuthProvider>().token;
                               if (token == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Silakan login terlebih dahulu')),
+                                  const SnackBar(
+                                      content: Text(
+                                          'Silakan login terlebih dahulu')),
                                 );
                                 return;
                               }
@@ -370,7 +373,8 @@ class _PosScreenState extends State<PosScreen> {
                                 if (newQty <= 0) {
                                   // remove on server
                                   if (cartCode != null) {
-                                    await CartService.removeItem(cartCode!, c.id, token);
+                                    await CartService.removeItem(
+                                        cartCode!, c.id, token);
                                   }
                                   if (!mounted) return;
                                   setState(() {
@@ -379,7 +383,8 @@ class _PosScreenState extends State<PosScreen> {
                                 } else {
                                   // update on server
                                   if (cartCode != null) {
-                                    await CartService.updateItem(cartCode!, c.id, newQty, token);
+                                    await CartService.updateItem(
+                                        cartCode!, c.id, newQty, token);
                                   }
                                   if (!mounted) return;
                                   setState(() {

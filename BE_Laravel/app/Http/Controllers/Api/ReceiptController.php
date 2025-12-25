@@ -27,8 +27,13 @@ class ReceiptController extends Controller
 
         $pdf = Pdf::loadView('pdf.receipt', [
             'transaction' => $transaction,
-        ]);
+        ])->setPaper('a4');
 
-        return $pdf->download("struk-{$transaction->invoice_number}.pdf");
+        return response($pdf->output(), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header(
+                'Content-Disposition',
+                'inline; filename="struk-' . $transaction->invoice_number . '.pdf"'
+            );
     }
 }

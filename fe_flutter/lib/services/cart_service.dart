@@ -1,5 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:dio/dio.dart';
+
 import '../config/api.dart';
 
 class CartService {
@@ -20,7 +26,8 @@ class CartService {
     return jsonData['data']['code'];
   }
 
-  static Future<Map<String, dynamic>> getCart(String code, String? token) async {
+  static Future<Map<String, dynamic>> getCart(
+      String code, String? token) async {
     final res = await http.get(
       Uri.parse('${Api.baseUrl}/carts/$code'),
       headers: {
@@ -36,7 +43,8 @@ class CartService {
     return json.decode(res.body) as Map<String, dynamic>;
   }
 
-  static Future<void> addItem(String code, String sku, int qty, String? token) async {
+  static Future<void> addItem(
+      String code, String sku, int qty, String? token) async {
     final res = await http.post(
       Uri.parse('${Api.baseUrl}/carts/$code/items'),
       headers: {
@@ -51,7 +59,8 @@ class CartService {
     }
   }
 
-  static Future<void> updateItem(String code, int itemId, int qty, String? token) async {
+  static Future<void> updateItem(
+      String code, int itemId, int qty, String? token) async {
     final res = await http.put(
       Uri.parse('${Api.baseUrl}/carts/$code/items/$itemId'),
       headers: {
@@ -80,7 +89,8 @@ class CartService {
     }
   }
 
-  static Future<Map<String, dynamic>> checkout(String code, double cashPaid, String? token) async {
+  static Future<Map<String, dynamic>> checkout(
+      String code, double cashPaid, String? token) async {
     final res = await http.post(
       Uri.parse('${Api.baseUrl}/carts/$code/checkout'),
       headers: {
@@ -97,7 +107,15 @@ class CartService {
     return json.decode(res.body) as Map<String, dynamic>;
   }
 
-  static Future<List<int>> getReceiptBytes(String invoice, String? token) async {
+  // ===============================
+  // RECEIPT (PDF)
+  // ===============================
+
+  /// Ambil PDF sebagai bytes (dipakai untuk WEB / PRINTING)
+  static Future<List<int>> getReceiptBytes(
+    String invoice,
+    String? token,
+  ) async {
     final res = await http.get(
       Uri.parse('${Api.baseUrl}/transactions/$invoice/receipt'),
       headers: {
@@ -110,5 +128,37 @@ class CartService {
     }
 
     return res.bodyBytes;
+  }
+
+  /// ANDROID ONLY
+  /// Download PDF → simpan → buka
+  static Future<String> downloadReceiptAndroid({
+    required String invoice,
+    required String token,
+  }) async {
+    final dio = Dio();
+
+    final dir = await getExternalStorageDirectory();
+    final filePath = '${dir!.path}/struk-$invoice.pdf';
+
+    final response = await dio.get(
+      'http://10.0.2.2:8000/api/transactions/$invoice/receipt',
+      options: Options(
+        responseType: ResponseType.bytes,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/pdf',
+        },
+      ),
+    );
+
+    final file = File(filePath);
+    await file.writeAsBytes(response.data);
+
+    // Preview PDF
+    await OpenFilex.open(filePath);
+
+    // 🔥 INI PENTING
+    return filePath;
   }
 }
