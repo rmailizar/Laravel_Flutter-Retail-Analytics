@@ -138,27 +138,35 @@ class CartService {
   }) async {
     final dio = Dio();
 
+    // 📂 Folder storage aplikasi (AMAN Android 10+)
     final dir = await getExternalStorageDirectory();
-    final filePath = '${dir!.path}/struk-$invoice.pdf';
+    if (dir == null) {
+      throw Exception('Storage tidak tersedia');
+    }
 
+    final filePath = '${dir.path}/struk-$invoice.pdf';
+
+    // 🌐 Request PDF ke Laravel
     final response = await dio.get(
-      'http://10.0.2.2:8000/api/transactions/$invoice/receipt',
+      Api.receipt(invoice), // 🔥 PAKAI BASEURL GLOBAL
       options: Options(
         responseType: ResponseType.bytes,
         headers: {
+          ...Api.headers,
           'Authorization': 'Bearer $token',
           'Accept': 'application/pdf',
         },
       ),
     );
 
+    // 💾 Simpan file
     final file = File(filePath);
     await file.writeAsBytes(response.data);
 
-    // Preview PDF
+    // 👀 Preview PDF (otomatis buka)
     await OpenFilex.open(filePath);
 
-    // 🔥 INI PENTING
+    // 🔁 Return path (buat SnackBar / log)
     return filePath;
   }
 }

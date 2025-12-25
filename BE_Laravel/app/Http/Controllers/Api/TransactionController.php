@@ -80,6 +80,7 @@ class TransactionController extends Controller
                 'cash_paid' => $request->cash_paid,
                 'change_amount' => $request->cash_paid - $total,
                 'paid_at' => now(),
+                'cashier_id' => auth()->id(),
                 'transaction_date' => now()
             ]);
 

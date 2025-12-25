@@ -60,7 +60,7 @@
     <!-- HEADER TOKO -->
     <div class="center">
         <div class="bold">TOKO SENJA & RONA</div>
-        <div class="small">Jl. Contoh No. 123</div>
+        <div class="small">Jl Kencana No. 3, Kelurahan Malabar, Kecamatan Lengkong, Kota Bandung, Jawa Barat</div>
         <div class="small">Telp: 0812-3456-7890</div>
     </div>
 
@@ -79,10 +79,6 @@
         <tr>
             <td>Kasir</td>
             <td>: {{ $transaction->cashier->name ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td>No. Struk</td>
-            <td>: {{ $transaction->receipt->receipt_number ?? '-' }}</td>
         </tr>
     </table>
 

@@ -10,7 +10,8 @@ class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
-  State<TransactionHistoryScreen> createState() => _TransactionHistoryScreenState();
+  State<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
 }
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
@@ -22,7 +23,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     setState(() {
       _orders = OrderService.getOrders(token: token);
     });
-    
+
     try {
       final orders = await _orders;
       print('✅ Loaded ${orders.length} orders successfully');
@@ -42,7 +43,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final authProvider = context.read<AuthProvider>();
-    print('🔍 didChangeDependencies - Token: ${authProvider.token?.substring(0, 20)}...');
+    print(
+        '🔍 didChangeDependencies - Token: ${authProvider.token?.substring(0, 20)}...');
     print('👤 Role: ${authProvider.role}');
     print('🔐 isAuth: ${authProvider.isAuth}');
     _loadOrders();
@@ -212,7 +214,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           o.invoiceNumber,
@@ -230,9 +233,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                             color: Colors.grey.shade600,
                                           ),
                                         ),
-                                        if (o.items != null && o.items!.isNotEmpty)
+                                        if (o.items != null &&
+                                            o.items!.isNotEmpty)
                                           Padding(
-                                            padding: const EdgeInsets.only(top: 4),
+                                            padding:
+                                                const EdgeInsets.only(top: 4),
                                             child: Text(
                                               '${o.items!.length} item',
                                               style: TextStyle(
@@ -350,10 +355,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   children: [
                     // Transaction Info
                     _buildInfoCard([
-                      _buildInfoRow('Tanggal', _formatDateTime(order.createdAt)),
-                      _buildInfoRow('Total', 'Rp ${_formatPrice(order.totalAmount)}'),
-                      _buildInfoRow('Bayar', 'Rp ${_formatPrice(order.cashPaid)}'),
-                      _buildInfoRow('Kembalian', 'Rp ${_formatPrice(order.changeAmount)}'),
+                      _buildInfoRow(
+                          'Tanggal', _formatDateTime(order.createdAt)),
+                      _buildInfoRow(
+                          'Total', 'Rp ${_formatPrice(order.totalAmount)}'),
+                      _buildInfoRow(
+                          'Bayar', 'Rp ${_formatPrice(order.cashPaid)}'),
+                      _buildInfoRow('Kembalian',
+                          'Rp ${_formatPrice(order.changeAmount)}'),
                     ]),
                     if (order.items != null && order.items!.isNotEmpty) ...[
                       const SizedBox(height: 16),
@@ -367,48 +376,49 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       ),
                       const SizedBox(height: 12),
                       ...order.items!.map((item) => Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.productName,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Rp ${_formatPrice(item.price)} × ${item.qty}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade200),
                             ),
-                            Text(
-                              'Rp ${_formatPrice(item.subtotal)}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF7C3AED),
-                              ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.productName,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Rp ${_formatPrice(item.price)} × ${item.qty}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  'Rp ${_formatPrice(item.subtotal)}',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF7C3AED),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      )),
+                          )),
                     ],
                   ],
                 ),
@@ -463,16 +473,32 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   String _formatPrice(double price) {
     final intPrice = price.toInt();
     return intPrice.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]}.',
-    );
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
   }
 
   String _formatDateTime(String dateTime) {
     try {
-      final dt = DateTime.parse(dateTime);
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-      return '${dt.day} ${months[dt.month - 1]} ${dt.year}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      final dt = DateTime.parse(dateTime).toLocal(); // 🔥 PENTING
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des'
+      ];
+
+      return '${dt.day} ${months[dt.month - 1]} ${dt.year}, '
+          '${dt.hour.toString().padLeft(2, '0')}:'
+          '${dt.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return dateTime;
     }
