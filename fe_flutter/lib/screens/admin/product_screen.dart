@@ -193,19 +193,6 @@ class _ProductScreenState extends State<ProductScreen> {
               subtitle: 'Admin Panel',
               actions: [
                 _buildIconButton(
-                  icon: Icons.edit_rounded,
-                  tooltip: 'Tambah',
-                  onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ProductFormScreen()),
-                    );
-                    if (!mounted) return;
-                    _loadData();
-                  },
-                ),
-                const SizedBox(width: 8),
-                _buildIconButton(
                   icon: Icons.category_rounded,
                   tooltip: 'Kategori',
                   onTap: () async {
@@ -551,6 +538,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       _loadData();
                     },
                   ),
+                  const SizedBox(width: 3),
                   _buildActionButton(
                     icon: Icons.edit_rounded,
                     color: Colors.blue,
@@ -565,7 +553,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       _loadData();
                     },
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 3),
                   _buildActionButton(
                     icon: Icons.delete_rounded,
                     color: Colors.red,
